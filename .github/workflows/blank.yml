@@ -6,6 +6,7 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 env:
   # docker_username: ${{ github.actor }}
   docker_username: stanislav04 # Docker will not accept capital letters in the repository name
@@ -64,6 +65,15 @@ jobs:
           context: app
           push: true
           tags: ghcr.io/${{ env.docker_username }}/micronaut-app:1.0-${{ github.sha }},ghcr.io/${{ env.docker_username }}/micronaut-app:latest
+      - name: Test image for vulnarabilities
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ghcr.io/${{ env.docker_username }}/micronaut-app:latest
+          format: table
+          exit-code: 1
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
   Component-test:
     runs-on: ubuntu-latest
     needs: Docker-image
